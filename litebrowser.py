@@ -5,9 +5,30 @@ import ClientForm
 import cookielib
 import urllib2
 import urllib
+import webbrowser
+from tempfile import mkdtemp
+import os
+import time
 
-class FORM(object):
+#SOME GLOBALS
+TEMPDIR = mkdtemp()
+HOME = os.environ["HOME"]
 
+#Will include some default presets
+DEFAULT = {
+    }
+FIREFOX = {
+    }
+CHROMIUM = {
+    }
+
+#And a presets maker wizzard to use your browser settings
+class Real_browser(object):
+    def __init__(self, browser="default"):
+        pass
+
+
+class Form(object):
     def __init__(self, parent, form):
         self.parent = parent
         self._form = form
@@ -38,7 +59,7 @@ class FORM(object):
         return self._form.set_all_readonly(*args, **kw)
 
 
-class COOKIE(cookielib.CookieJar):
+class Cookies_mngr(cookielib.CookieJar):
     def __init__(self, *args, **kwargs):
         """
             initialize the CookieJar class that implements:
@@ -59,6 +80,8 @@ class COOKIE(cookielib.CookieJar):
                 .strict_domain_re
         """
 
+        cookielib.CookieJar.__init__(self)
+
     def save_cookies(self, filename):
         """
             save the cookies to a file
@@ -70,7 +93,7 @@ class COOKIE(cookielib.CookieJar):
         """
 
 
-class CACHE:
+class Cache_mngr(urllib2.BaseHandler):
     def __init__(self, backend=None):
         """
             initialize the backend connection
@@ -82,13 +105,27 @@ class CACHE:
         """
 
 
-class BROWSER(object):
-    def __init__(self, preset):
+class Browser(object):
+    def __init__(self, preset=DEFAULT, cookiesmngr=None, cachemngr=None,
+            proxiesmngr=None):
         """
-            instante a cookie manager
+            instante a cookie manager if not given
+            instance a cache manager if not given
+            instance a proxies manager if not given
             instance a urllib2 opener for private use
-            instance a cache manager
         """
+
+        #FIXME: Must depend on presets
+        self.cache = cachemngr or Cache_mngr()
+        self.cookies = cookiesmngr or Cookies_mngr()
+        self.proxies = proxiesmngr or urllib2.ProxyHandler()
+        self.opener = urllib2.build_opener(
+            urllib2.HTTPCookieProcessor(self.cookies),
+            self.proxies,
+            self.cache,
+            )
+        
+        
 
     def config(self):
         """
@@ -113,40 +150,50 @@ class BROWSER(object):
         tempfile = open(temppath, "w")
         tempfile.write(self.get_html())
         tempfile.close()
-        debug(temppath)
 
         if not openon:
             return webbrowser.open(temppath)
         else:
             return webbrowser.GenericBrowser(openon).open(temppath)
 
-    def go(self, url):
+    def go(self, url, data=None, timeout=None):
         """
             request the html and update the statuses
         """
+        self._last_req = self.opener.open(url, data, timeout)
+        return self._update_status()
 
-    def get_html(self, url=None, *args, **kw):
+    def _update_status(self, request=None):
+        request = request or self._last_req
+        self._code = request.code
+        self._url = request.url
+        self._msg = request.msg
+        self._headers = request.headers
+        self._html = request.read()
+        return self._msg
+
+    def get_html(self, url=None, data=None, timeout=None):
         """
             returns the html
         """
         if url:
-            self.go(url)
+            self.go(url, data, timeout)
         return self._html
 
-    def get_title(self, url=None, *args, **kwargs):
+    def get_title(self, url=None, data=None, timeout=None):
         """
             returns the title
         """
         if url:
-            self.go(url)
+            self.go(url, data, timeout)
         return self._title
 
-    def get_code(self, url=None):
+    def get_code(self, url=None, data=None, timeout=None):
         """
             returns the error code
         """
         if url:
-            self.go(url)
+            self.go(url, data, timeout)
         return self._code
 
     def get_url(self):
@@ -155,7 +202,7 @@ class BROWSER(object):
         """
         return self._url
 
-    def get_forms(self, url=None, *args, **kw):
+    def get_forms(self, url=None, data=None, timeout=None):
         """
             return the forms
         """
