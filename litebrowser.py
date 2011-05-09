@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #-*- coding: UTF-8 -*-
 
+from cStringIO import StringIO
 from tempfile import mkdtemp
 import ClientForm
 import cookielib
@@ -15,8 +16,8 @@ TEMPDIR = mkdtemp()
 HOME = os.environ["HOME"]
 
 #TODO: Add some default presets
-#DEFAULT = {
-#    }
+DEFAULT = {
+    }
 #FIREFOX = {
 #    }
 #CHROMIUM = {
@@ -64,8 +65,8 @@ class Form(object):
         return self._form.click()
 
 
-    def submit(self, *args, **kw):
-        return self.parent.put_form(self, *args, **kw)
+    def submit(self, data=None, timeout=None):
+        return self.parent.go(self._form.click(), data, timeout)
 
 
     def set_all_readonly(self, *args, **kw):
@@ -249,11 +250,33 @@ class Browser(object):
         """
         return the forms
         """
+        if url:
+            self.go(url, data, timeout)
+        
+        fifo = StringIO()
+        fifo.writelines(self.get_html())
+        fifo.seek(0)
+        forms = ClientForm.ParseFile(fifo, self.get_url(),
+            backwards_compat=False) 
+        return [Form(self, form) for form in forms]
 
 
 def main():
     #TODO: Implement a shell like language for web scripting
-    print("Use this as a module.")
+    browser = Browser()
+    print(browser.go("https://joindiaspora.com/users/sign_in"))
+    forms = browser.get_forms()
+    form = forms[0]
+    form["user[username]"] = raw_input("User: ")
+    form["user[password]"] = raw_input("Password: ")
+    print(form.submit())
+    forms = browser.get_forms()
+    form = forms[2]
+    form.set_all_readonly(False)
+    form["status_message[public]"] = "true"
+    form["status_message[text]"] = raw_input("Message: ")
+    print(form.submit())
+    browser.show()
 
 
 if __name__ == "__main__":
