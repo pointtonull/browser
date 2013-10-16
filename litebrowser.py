@@ -46,11 +46,25 @@ class Form(object):
 
 
     def __getitem__(self, y):
-        return self._form.__getitem__(y)
+        if y in self._form:
+            return self._form.__getitem__(y)
+        else:
+            possibles = [name for name in self.names if y in str(name)]
+            if len(possibles) == 1:
+                return self._form.__getitem__(possibles[0])
+            else:
+                raise ValueError
 
 
     def __setitem__(self, i, y):
-        return self._form.__setitem__(i, y)
+        if i in self.names:
+            return self._form.__setitem__(i, y)
+        else:
+            possibles = [name for name in self.names if i in str(name)]
+            if len(possibles) == 1:
+                return self._form.__setitem__(possibles[0], y)
+            else:
+                raise ValueError("%s not in %s" % (i, self.names))
 
 
     def __repr__(self):
