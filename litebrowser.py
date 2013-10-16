@@ -79,6 +79,10 @@ class Form(object):
         return self._form.click()
 
 
+    def add_file(self, *args, **kw):
+        return self._form.add_file(*args, **kw)
+
+
     def submit(self, data=None, timeout=None):
         return self.parent.go(self._form.click(), data, timeout)
 
