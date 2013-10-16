@@ -157,7 +157,6 @@ class Cache_mngr(urllib2.BaseHandler):
         """
 
 
-
 class Browser(object):
     def __init__(self, preset=DEFAULT, cookiesmngr=None, cachemngr=None,
         proxiesmngr=None):
@@ -169,14 +168,30 @@ class Browser(object):
         instances a urllib2 opener for private use
         """
 
+
+        self.hist = []
+        history = self.hist
+
+        class HTTPRedirectHandler(urllib2.HTTPRedirectHandler):
+            def http_error_302(self, req, fp, code, msg, headers):
+                if "location" in headers.dict:
+                    history.append(headers.dict["location"])
+                return urllib2.HTTPRedirectHandler.http_error_302(self, req,
+                    fp, code, msg, headers)
+            http_error_301 = http_error_303 = http_error_307 = http_error_302
+
+
         #FIXME: Must depend on presets when implementeds
         self.cache = cachemngr or Cache_mngr()
         self.cookies = cookiesmngr or Cookies_mngr()
         self.proxies = proxiesmngr or urllib2.ProxyHandler()
         self.opener = urllib2.build_opener(
+            HTTPRedirectHandler,
             urllib2.HTTPCookieProcessor(self.cookies),
             self.proxies, self.cache)
         self.opener.addheaders = [('User-agent', preset["User-Agent"])]
+        self._last_req = None
+        self._req_hist = []
 
 
     def config(self):
@@ -215,6 +230,7 @@ class Browser(object):
 
         returns the opener msg
         """
+        self.hist.append(url)
         self._last_req = self.opener.open(url, data, timeout)
         return self._update_status()
 
