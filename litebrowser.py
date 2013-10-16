@@ -230,6 +230,11 @@ class Browser(object):
 
         returns the opener msg
         """
+        if isinstance(url, basestring) and not "://" in url:
+            old_url = self.get_url()
+            proto, old_url = old_url.split("//")
+            old_url = old_url.split("/")[0] 
+            url = proto + "//" + old_url + "/" + url.lstrip("/")
         self.hist.append(url)
         self._last_req = self.opener.open(url, data, timeout)
         return self._update_status()
