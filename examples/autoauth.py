@@ -2,23 +2,28 @@
 #-*- coding: UTF-8 -*-
 
 from litebrowser import Browser
-#from browser import BROWSER as Browser
 
-def troubleshoting(browser):
+"""
+This module allows you to access the FB API from a username/password pair.
+Works only with users who use facebook in Spanish, for now.
+"""
+
+
+def troubleshoting(browser, verbose=2):
     html = browser.get_html()
     if "www.facebook.com/messages" in html:
-#        print("Sesión exitosa")
+        if 2 < verbose: print("Logged in")
         return True
     if html.startswith("Success"):
-#        print("Permisos concedidos")
+        if 2 < verbose: print("Privileges granted")
         return True
 
     elif "alguien intentó iniciar sesión en tu cuenta" in html:
-        print("Sesión sospechosa")
+        if 1 < verbose: print("Suspicious session")
         browser.get_forms()[0].submit()
         return troubleshoting(browser)
     elif "Ver un intento de inicio de sesión reciente" in html:
-        print("Sesión sospechosa, mapa")
+        if 0 < verbose: print("Suspicious session, map")
         form = browser.get_forms()[0]
         browser.go(form._form.click("submit[This is Okay]"))
         return troubleshoting(browser)
@@ -31,17 +36,15 @@ def troubleshoting(browser):
         form.submit()
         return troubleshoting(browser)
     elif "permissions_app_name" in html:
-        print("Autorizar sesión de permisos")
+        if 0 < verbose: print("Autorizar sesión de permisos")
         form = browser.get_forms()[0]
         browser.go(form._form.click("__CONFIRM__"))
         return troubleshoting(browser)
 
     elif "recover/initiate" in html:
-        print("Par usuario, contraseña incorrecto.")
-        return False
+        raise ValueError("Par usuario, contraseña incorrecto.")
     elif "data-captcha-class=" in html:
-        print("Captcha: intervención manual requerida.")
-        return False
+        raise RuntimeError("Captcha: intervención manual requerida.")
 
     else:
         print("\n\n    ESTADO NO RECONOCIDO\n\n")
