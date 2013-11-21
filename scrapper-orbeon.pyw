@@ -29,7 +29,9 @@ def main():
             output = []
             for div in soup("div", {"class":"fr-grid-content"}):
                 for label in div("label", {"class":"xforms-label"}):
-                    output.append(label.text)
+                    label = label.text
+                    if label and not label.startswith(u"«"):
+                        output.append(label)
                 if div.find("span", {"class":"xforms-upload-filename"}):
                     span = div.find("span", {"class":"xforms-upload-filename"})
                     output.append(span.text)
