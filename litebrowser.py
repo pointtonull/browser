@@ -12,7 +12,7 @@ import webbrowser
 
 #SOME GLOBALS
 TEMPDIR = mkdtemp()
-HOME = os.environ["HOME"]
+HOME = os.environ.get("HOME", "")
 
 #TODO: Add some default presets
 DEFAULT = {
@@ -171,6 +171,7 @@ class Browser(object):
 
         self.hist = []
         history = self.hist
+        self._url = ""
 
         class HTTPRedirectHandler(urllib2.HTTPRedirectHandler):
             def http_error_302(self, req, fp, code, msg, headers):
