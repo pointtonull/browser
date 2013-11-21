@@ -62,6 +62,11 @@ def main():
                     for line in output
                         if line)) + "\r\n")
 
+#            filename = "%s %s.raw" % (form_class, form_instance)
+#            filename = path.join(DIRNAME, filename)
+#            with open(filename, "w") as file:
+#                file.write(soup.prettify())
+
         print(len(forms))
 
 
