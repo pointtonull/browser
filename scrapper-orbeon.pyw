@@ -7,7 +7,6 @@ from os import makedirs, path
 import re
 import sys
 
-IDENT = " " * 4
 DIRNAME = path.join("tmp", "encuestas")
 
 def main():
