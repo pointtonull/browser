@@ -60,7 +60,8 @@ def main():
             with open(filename, "w") as file:
                 file.write("\r\n".join((line.encode("utf8")
                     for line in output
-                        if line)))
+                        if line)) + "\r\n")
+
         print(len(forms))
 
 
