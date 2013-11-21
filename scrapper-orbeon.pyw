@@ -39,6 +39,9 @@ def main():
                         for span in div("span")
                             if "-selected" in span["class"]]
                     output.append(" - ".join(selecteds))
+                elif div.find("option"):
+                    for option in div("option", {"selected":"selected"}):
+                        output.append(option.text)
                 elif div.input:
                     try:
                         value = div.input["value"]
