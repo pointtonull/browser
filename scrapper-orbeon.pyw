@@ -35,7 +35,7 @@ def main():
                     span = div.find("span", {"class":"xforms-upload-filename"})
                     output.append(span.text)
                 elif div.find("span", {"class":"xforms-items"}):
-                    selecteds = [span.text
+                    selecteds = [span.label.input["value"]
                         for span in div("span")
                             if "-selected" in span["class"]]
                     output.append(" - ".join(selecteds))
