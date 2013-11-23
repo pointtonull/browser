@@ -19,13 +19,16 @@ def main():
     for url in urls:
         form_class = url.split("/")[-2]
         html = browser.get_html(url)
-        forms = set(re.findall(r'href="(/orbeon/fr/.*?/.*?/edit/.*?)"', html))
-        for form in forms:
+        soup = BeautifulSoup(html)
+        forms = [(f["href"], f.text)
+            for f in soup("a", {"id":re.compile(u"xf-399⊙\\d-1")})]
+        for form, timestamp in forms:
             form_instance = form.split("/")[-1]
             html = browser.get_html(form)
             soup = BeautifulSoup(html)
 
-            output = []
+
+            output = ["0.0_id-relevamiento", form_instance]
             for div in soup("div", {"class":"fr-grid-content"}):
                 for label in div("label", {"class":"xforms-label"}):
                     label = label.text
@@ -55,14 +58,14 @@ def main():
                     for span in div("span", {"class":"xforms-output-output"}):
                         output.append(span.text)
 
-            filename = "%s %s.txt" % (form_class, form_instance)
+            filename = "%s_%s_%s.txt" % (form_class, form_instance, timestamp)
             filename = path.join(DIRNAME, filename)
             with open(filename, "w") as file:
                 file.write("\r\n".join((line.encode("utf8")
                     for line in output
                         if line)) + "\r\n")
 
-#            filename = "%s %s.raw" % (form_class, form_instance)
+#            filename = "%s_%s_%s.raw" % (form_class, form_instance, timestamp)
 #            filename = path.join(DIRNAME, filename)
 #            with open(filename, "w") as file:
 #                file.write(soup.prettify())
