@@ -58,7 +58,7 @@ def main():
                     for span in div("span", {"class":"xforms-output-output"}):
                         output.append(span.text)
 
-            filename = "%s_%s_%s.txt" % (form_class, form_instance, timestamp)
+            filename = "%s_%s_%s.txtconin" % (form_class, form_instance, timestamp)
             filename = path.join(DIRNAME, filename)
             with open(filename, "w") as file:
                 file.write("\r\n".join((line.encode("utf8")
